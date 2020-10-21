@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
+import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 
@@ -17,6 +18,7 @@ class DrawingView(context: Context, attrbset: AttributeSet) : View(context, attr
     private var mBrushSize: Float = 0F
     private var color = Color.BLACK
     private var canvas: Canvas? = null
+    private val mPaths = ArrayList<CustomPath>()
 
     init {
         setUpDrawing()
@@ -33,7 +35,7 @@ class DrawingView(context: Context, attrbset: AttributeSet) : View(context, attr
         mDrawPaint!!.strokeCap = Paint.Cap.ROUND
         mDrawPath = CustomPath(color, mBrushSize)
         mCanvasPaint = Paint(Paint.DITHER_FLAG)
-        mBrushSize = 20F
+        //mBrushSize = 20F
     }
 
 
@@ -53,7 +55,15 @@ class DrawingView(context: Context, attrbset: AttributeSet) : View(context, attr
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
         canvas!!.drawBitmap(mCanvasBitmap!!, 0f, 0f, mCanvasPaint)
-        // making sure that our CustomPath returns something
+
+        // loops over the saved Paths in mPaths and draw them
+        for(path in mPaths){
+            mDrawPaint!!.strokeWidth = path.brushThickness
+            mDrawPaint!!.color = path.color
+            canvas.drawPath(path,mDrawPaint!!)
+        }
+
+        // making sure that our CustomPath returns something then draws the path
         if(!mDrawPath!!.isEmpty){
             mDrawPaint!!.strokeWidth = mDrawPath!!.brushThickness
             mDrawPaint!!.color = mDrawPath!!.color
@@ -80,12 +90,14 @@ class DrawingView(context: Context, attrbset: AttributeSet) : View(context, attr
                 mDrawPath!!.brushThickness = mBrushSize
                 mDrawPath!!.reset()
                 mDrawPath!!.moveTo(touchX!!, touchY!!)
-                Log.d("event","ryan event the screen is touched")
             }
             MotionEvent.ACTION_MOVE -> {
                 mDrawPath!!.lineTo(touchX!!, touchY!!)
             }
             MotionEvent.ACTION_UP -> {
+                // saves drawn path to an arraylist for persistence
+                mPaths.add(mDrawPath!!)
+                // resets the drawpath
                 mDrawPath = CustomPath(color, mBrushSize)
             }
             else -> return false
@@ -95,6 +107,12 @@ class DrawingView(context: Context, attrbset: AttributeSet) : View(context, attr
 
         return true // important flag
 
+    }
+
+    // set the brush size to a size in relation to the dimension of the screen
+    fun setBrushSize(newSize: Float){
+        mBrushSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, newSize, resources.displayMetrics)
+        mDrawPaint!!.strokeWidth = mBrushSize
     }
 
 
