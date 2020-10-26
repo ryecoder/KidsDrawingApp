@@ -19,6 +19,7 @@ class DrawingView(context: Context, attrbset: AttributeSet) : View(context, attr
     private var color = Color.BLACK
     private var canvas: Canvas? = null
     private val mPaths = ArrayList<CustomPath>()
+    private val mUndoPaths = ArrayList<CustomPath>()
 
     init {
         setUpDrawing()
@@ -38,6 +39,17 @@ class DrawingView(context: Context, attrbset: AttributeSet) : View(context, attr
         //mBrushSize = 20F
     }
 
+    /**
+     * Function that will be used to undo in the drawing.
+     * Removes last path in mPaths and saves if to a variable.
+     * After that invalidate the whole View to call onDraw
+     */
+    fun onUndoClick(){
+        if(mPaths.isNotEmpty()){
+            mUndoPaths.add(mPaths.removeAt(mPaths.size - 1))
+            invalidate()
+        }
+    }
 
     /*
     initializes canvas with bitmap image of the size of the screen
@@ -113,6 +125,12 @@ class DrawingView(context: Context, attrbset: AttributeSet) : View(context, attr
     fun setBrushSize(newSize: Float){
         mBrushSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, newSize, resources.displayMetrics)
         mDrawPaint!!.strokeWidth = mBrushSize
+    }
+
+    // change the color of the mdrawpaint
+    fun setPaintColor(newColor: String){
+        color = Color.parseColor(newColor)
+        mDrawPaint!!.color = color
     }
 
 
